@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func TestClientPutGetDelete(t *testing.T) {
+func TestAPI_ClientPutGetDelete(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -73,7 +73,7 @@ func TestClientPutGetDelete(t *testing.T) {
 	}
 }
 
-func TestClient_List_DeleteRecurse(t *testing.T) {
+func TestAPI_ClientList_DeleteRecurse(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -128,7 +128,7 @@ func TestClient_List_DeleteRecurse(t *testing.T) {
 	}
 }
 
-func TestClient_DeleteCAS(t *testing.T) {
+func TestAPI_ClientDeleteCAS(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -174,7 +174,7 @@ func TestClient_DeleteCAS(t *testing.T) {
 	}
 }
 
-func TestClient_CAS(t *testing.T) {
+func TestAPI_ClientCAS(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -222,7 +222,7 @@ func TestClient_CAS(t *testing.T) {
 	}
 }
 
-func TestClient_WatchGet(t *testing.T) {
+func TestAPI_ClientWatchGet(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -244,6 +244,7 @@ func TestClient_WatchGet(t *testing.T) {
 
 	// Put the key
 	value := []byte("test")
+	doneCh := make(chan struct{})
 	go func() {
 		kv := c.KV()
 
@@ -252,6 +253,7 @@ func TestClient_WatchGet(t *testing.T) {
 		if _, err := kv.Put(p, nil); err != nil {
 			t.Fatalf("err: %v", err)
 		}
+		doneCh <- struct{}{}
 	}()
 
 	// Get should work
@@ -272,9 +274,12 @@ func TestClient_WatchGet(t *testing.T) {
 	if meta2.LastIndex <= meta.LastIndex {
 		t.Fatalf("unexpected value: %#v", meta2)
 	}
+
+	// Block until put finishes to avoid a race between it and deferred s.Stop()
+	<-doneCh
 }
 
-func TestClient_WatchList(t *testing.T) {
+func TestAPI_ClientWatchList(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -297,6 +302,7 @@ func TestClient_WatchList(t *testing.T) {
 
 	// Put the key
 	value := []byte("test")
+	doneCh := make(chan struct{})
 	go func() {
 		kv := c.KV()
 
@@ -305,6 +311,7 @@ func TestClient_WatchList(t *testing.T) {
 		if _, err := kv.Put(p, nil); err != nil {
 			t.Fatalf("err: %v", err)
 		}
+		doneCh <- struct{}{}
 	}()
 
 	// Get should work
@@ -326,9 +333,11 @@ func TestClient_WatchList(t *testing.T) {
 		t.Fatalf("unexpected value: %#v", meta2)
 	}
 
+	// Block until put finishes to avoid a race between it and deferred s.Stop()
+	<-doneCh
 }
 
-func TestClient_Keys_DeleteRecurse(t *testing.T) {
+func TestAPI_ClientKeys_DeleteRecurse(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -378,7 +387,7 @@ func TestClient_Keys_DeleteRecurse(t *testing.T) {
 	}
 }
 
-func TestClient_AcquireRelease(t *testing.T) {
+func TestAPI_ClientAcquireRelease(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()
@@ -447,7 +456,7 @@ func TestClient_AcquireRelease(t *testing.T) {
 	}
 }
 
-func TestClient_Txn(t *testing.T) {
+func TestAPI_ClientTxn(t *testing.T) {
 	t.Parallel()
 	c, s := makeClient(t)
 	defer s.Stop()

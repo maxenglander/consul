@@ -1,13 +1,12 @@
 language: go
 
 go:
-  - 1.6.2
+  - 1.x
 
 branches:
   only:
     - master
 
-install: make
 script:
   - make test
 

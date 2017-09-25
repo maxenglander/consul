@@ -3,7 +3,6 @@
 # This script builds the application from source for multiple platforms.
 set -e
 
-export GO15VENDOREXPERIMENT=1
 export CGO_ENABLED=0
 
 # Get the parent directory of where this script is.
@@ -14,13 +13,8 @@ DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 # Change into that directory
 cd "$DIR"
 
-# Get the git commit
-GIT_COMMIT="$(git rev-parse HEAD)"
-GIT_DIRTY="$(test -n "`git status --porcelain`" && echo "+CHANGES" || true)"
-GIT_DESCRIBE="$(git describe --tags)"
-
 # Determine the arch/os combos we're building for
-XC_ARCH=${XC_ARCH:-"386 amd64 arm"}
+XC_ARCH=${XC_ARCH:-"386 amd64 arm arm64"}
 XC_OS=${XC_OS:-"solaris darwin freebsd linux windows"}
 
 # Delete the old dir
@@ -37,12 +31,13 @@ fi
 
 # Build!
 echo "==> Building..."
-$GOPATH/bin/gox \
+"`which gox`" \
     -os="${XC_OS}" \
     -arch="${XC_ARCH}" \
-    -osarch="!darwin/arm" \
-    -ldflags "-X main.GitCommit='${GIT_COMMIT}${GIT_DIRTY}' -X main.GitDescribe='${GIT_DESCRIBE}'" \
+    -osarch="!darwin/arm !darwin/arm64" \
+    -ldflags "${GOLDFLAGS}" \
     -output "pkg/{{.OS}}_{{.Arch}}/consul" \
+    -tags="${GOTAGS}" \
     .
 
 # Move all the compiled things to the $GOPATH/bin
