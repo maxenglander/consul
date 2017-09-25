@@ -180,7 +180,7 @@ func (c *WatchCommand) Run(args []string) int {
 			go func() {
 				<-wpStoppingCh
 				if err := cmd.Process.Kill(); err != nil {
-					c.Ui.Error(fmt.Sprintf("Error sending kill signal to handler process: %s", err))
+					c.UI.Error(fmt.Sprintf("Error sending kill signal to handler process: %s", err))
 				}
 				close(wpStoppedCh)
 			}()
